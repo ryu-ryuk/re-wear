@@ -16,11 +16,13 @@ superuser:
 	python manage.py createsuperuser
 
 up:
-	docker-compose up --build
+	docker compose up --watch
+
 
 down:
-	docker-compose down
+	docker compose down
 
 build:
-	docker-compose build
+	docker compose build
+
 
