@@ -522,4 +522,18 @@ def login_user(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def reported_by_me(request):
+    """
+    Return every Item that the current user has personally reported.
+    """
+    items = (
+        Item.objects
+            .filter(reports__reported_by=request.user)
+            .distinct()
+    )
+    serializer = ItemListSerializer(items, many=True)
+    return Response(serializer.data)
+
 
