@@ -34,5 +34,6 @@ dependencies = [
     "requests-oauthlib>=2.0.0",
     "social-auth-app-django>=5.5.1",
     "social-auth-core>=4.7.0",
+    "drf-yasg>=1.21.10",
 ]
 
