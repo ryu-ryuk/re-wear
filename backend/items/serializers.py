@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Item, ItemImage, ItemLike
+from .models import Item, ItemImage, ItemLike, ItemReport
 
 User = get_user_model()
 
@@ -193,3 +193,9 @@ class ItemStatsSerializer(serializers.Serializer):
     pending_items = serializers.IntegerField()
     featured_items = serializers.IntegerField()
 
+
+class ItemReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemReport
+        fields = ['id', 'item', 'reported_by', 'reason', 'created_at', 'resolved', 'reviewed_by']
+        read_only_fields = ['id', 'reported_by', 'created_at', 'resolved', 'reviewed_by']

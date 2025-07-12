@@ -114,3 +114,24 @@ class ItemLike(models.Model):
     class Meta:
         unique_together = ['user', 'item']
 
+class ItemReport(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="reports")
+    reported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    reason = models.TextField(help_text="Why is this item not good?")
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved = models.BooleanField(default=False)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_reports"
+    )
+
+    class Meta:
+        unique_together = ['item', 'reported_by']  # Prevent duplicate reports
+
+    def __str__(self):
+        return f"Report by {self.reported_by.username} on {self.item.title}"
+
+

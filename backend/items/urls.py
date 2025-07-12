@@ -49,6 +49,7 @@ router.register('', ItemViewSet, basename='item')
 
 urlpatterns = [
     path('', include(router.urls)),
+   # path('')
 ]
 
 # Generated URL patterns:
