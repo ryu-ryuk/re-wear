@@ -133,8 +133,8 @@ UNFOLD = {
     "SITE_HEADER": _("ReWear Admin Panel"),
     "SITE_URL": "/",
     "SITE_ICON": {
-        "light": lambda request: static("logo/rewear_logo.png"),  # replace 
-        "dark": lambda request: static("logo/rewear_logo.png"),
+        "light": lambda request: static("logo/logo.png"),
+        "dark": lambda request: static("logo/logo.png"),
     },
     "SITE_LOGO": {
         "light": lambda request: static("logo/rewear_logo.png"),
