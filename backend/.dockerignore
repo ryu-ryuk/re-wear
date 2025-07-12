@@ -1,0 +1,29 @@
+# system
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# venv and local tools
+.venv/
+env/
+venv/
+.idea/
+.vscode/
+*.log
+
+# git & OS
+.git/
+.gitignore
+.DS_Store
+
+# media/static (handled via volumes)
+media/
+static/
+
+# docker stuff
+Dockerfile
+docker-compose.yml
+.env
+
