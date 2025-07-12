@@ -3,7 +3,7 @@ import os
 import dotenv
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
-
+from datetime import timedelta
 dotenv.load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,6 +28,8 @@ INSTALLED_APPS = [
 
     # third-party
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
+    'djoser',
     'corsheaders',
 
     # local
@@ -120,11 +122,34 @@ CORS_ALLOW_ALL_ORIGINS = True
 # rest framework (can be expanded later)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
+}
+
+# jwt authentication
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+
+# djoser settings
+DJOSER = {
+    'LOGIN_FIELD': 'username',
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'SERIALIZERS': {
+        'user_create': 'djoser.serializers.UserCreateSerializer',
+        'user': 'djoser.serializers.UserSerializer',
+        'current_user': 'djoser.serializers.UserSerializer',
+    },
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_list': ['rest_framework.permissions.IsAdminUser'],
+    },
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
