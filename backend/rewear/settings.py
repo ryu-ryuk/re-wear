@@ -1,22 +1,24 @@
 from pathlib import Path
 import os
 import dotenv
+from django.utils.translation import gettext_lazy as _
+from django.templatetags.static import static
 
 dotenv.load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'insecure-hackathon-key')
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
 
 
 # apps
 INSTALLED_APPS = [
-    'unfold',
+    "unfold",
+    "unfold.contrib.filters", 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,13 +77,13 @@ ASGI_APPLICATION = 'rewear.asgi.application'
 
 # database
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("POSTGRES_DB", "rewear_db"),
-        'USER': os.getenv("POSTGRES_USER", "rewear"),
-        'PASSWORD': os.getenv("POSTGRES_PASSWORD", "rewearpass"),
-        'HOST': os.getenv("POSTGRES_HOST", "db"),
-        'PORT': os.getenv("POSTGRES_PORT", 5432),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
 
@@ -104,8 +107,10 @@ USE_TZ = True
 
 # static / media
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -123,38 +128,43 @@ REST_FRAMEWORK = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 UNFOLD = {
-    "SITE_TITLE": "ReWear Admin",
-    "SITE_HEADER": "ReWear Admin Panel",
-    "SITE_ICON": "♻️",
-    "DASHBOARD": [
-        {
-            "title": "Quick Access",
-            "widgets": [
-                {
-                    "type": "model_list",
-                    "models": [
-                        "users.User",
-                        "items.Item",
-                        "swaps.SwapRequest"
-                    ]
-                },
-            ],
-        },
-    ],
+    "SITE_TITLE": _("ReWear Admin"),
+    "SITE_HEADER": _("ReWear Admin Panel"),
+    "SITE_URL": "/",
+    "SITE_ICON": {
+        "light": lambda request: static("logo/rewear_logo.png"),  # replace 
+        "dark": lambda request: static("logo/rewear_logo.png"),
+    },
+    "SITE_LOGO": {
+        "light": lambda request: static("logo/rewear_logo.png"),
+        "dark": lambda request: static("logo/rewear_logo.png"),
+    },
+    "SITE_SYMBOL": "recycling",  # google material icon name
+    "LOGIN": {
+        "image": lambda request: static("logo/rewear_bg.jpg"),  # optional background image
+    },
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": False,
+    "SHOW_BACK_BUTTON": True,
     "SIDEBAR": {
         "show_search": True,
+        "show_all_applications": True,
         "navigation": [
             {
-                "title": "Main",
+                "title": _("Main"),
                 "items": [
-                    {"title": "Users", "icon": "user", "model": "users.User"},
-                    {"title": "Items", "icon": "box", "model": "items.Item"},
-                    {"title": "Swaps", "icon": "repeat", "model": "swaps.SwapRequest"},
+                    {"title": "Users", "icon": "person", "model": "users.User"},
+                    {"title": "Items", "icon": "inventory", "model": "items.Item"},
+                    {"title": "Swaps", "icon": "sync_alt", "model": "swaps.SwapRequest"},
                 ],
             },
         ],
-    }
+    },
+    "COLORS": {
+        "primary": {
+            "500": "147 97 253",  # violet/catppuccin-inspired accent
+        },
+    },
+    "BORDER_RADIUS": "6px",
 }
-
