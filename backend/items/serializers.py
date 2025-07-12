@@ -114,7 +114,7 @@ class ItemCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = (
-            'title', 'description', 'category', 'size', 'condition',
+            'id', 'title', 'description', 'category', 'size', 'condition',
             'point_value', 'tags_list', 'color', 'brand', 'uploaded_images'
         )
 
@@ -153,6 +153,10 @@ class ItemCreateUpdateSerializer(serializers.ModelSerializer):
             )
             
         return item
+
+    def to_representation(self, instance):
+        """Return detailed item data after creation/update"""
+        return ItemDetailSerializer(instance, context=self.context).data
 
     def update(self, instance, validated_data):
         uploaded_images = validated_data.pop('uploaded_images', [])

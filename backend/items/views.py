@@ -386,7 +386,32 @@ class ItemViewSet(viewsets.ModelViewSet):
         - color: Primary color
         - brand: Brand name
         """
-        return super().create(request, *args, **kwargs)
+        # Create the item using the parent method
+        response = super().create(request, *args, **kwargs)
+        
+        # If creation was successful, return the full item details
+        if response.status_code == 201:
+            # Try to get item ID from response data first
+            item_id = response.data.get('id')
+            
+            # If no ID in response, try to get the last created item by this user
+            if not item_id:
+                try:
+                    item = self.get_queryset().filter(owner=request.user).latest('created_at')
+                    item_id = item.id
+                except Item.DoesNotExist:
+                    pass
+            
+            if item_id:
+                try:
+                    item = self.get_queryset().get(id=item_id)
+                    # Use the detail serializer to return complete item data
+                    serializer = ItemDetailSerializer(item, context={'request': request})
+                    response.data = serializer.data
+                except Item.DoesNotExist:
+                    pass
+        
+        return response
 
     def update(self, request, *args, **kwargs):
         """
