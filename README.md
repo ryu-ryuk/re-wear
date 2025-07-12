@@ -38,9 +38,9 @@ graph TB
 
 ## Team Members
 
-- **Arjith A R** - Full Stack Developer
-- **Alok** - Backend Developer
-- **Darunesh** - Frontend Developer
+- **Arjith A R** - Frontend
+- **Alok** - Backend && Frontend
+- **Darunesh** - Backend
 
 ## Features Implemented
 
@@ -352,13 +352,6 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ## License
 
 This project was developed for a hackathon and is available under the MIT License.
-
-## Contact
-
-For questions or support, please contact the development team:
-- **Arjith A R** - Frontend
-- **Alok** - Backend && Frontend
-- **Darunesh** - Backend
 
 ---
 
