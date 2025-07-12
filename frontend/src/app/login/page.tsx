@@ -47,9 +47,9 @@ export default function LoginPage() {
         toast.error("Login failed. Please check your credentials.")
         return
       }
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      console.log(values)
+      console.log("Login successful:", body)
       localStorage.setItem("ReWearToken", body.tokens.access)
+      localStorage.setItem("ReWearUser", JSON.stringify(body.user))
       toast.success("Login successful! redirecting..")
       router.push("/app")
 

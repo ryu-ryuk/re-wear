@@ -71,7 +71,9 @@ export default function SignupPage() {
         toast.error(body.message || "Failed to create account. Please try again.")
         return
       }
+      console.log(body)
       localStorage.setItem("ReWearToken", body.tokens.access)
+      localStorage.setItem("ReWearUser", JSON.stringify(body.user))
       toast.success("Account created successfully!")
       setTimeout(()=>{}, 3000)
       router.push("/app")

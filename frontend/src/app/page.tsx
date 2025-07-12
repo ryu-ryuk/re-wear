@@ -21,108 +21,32 @@ interface FeaturedItem {
 
 export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([])
+  useEffect(() => {
+    const fetchFeaturedItems = async () => {
+      try {
+        const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+        const response = await fetch(`${BASE_URL}/items/featured/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
 
-  const featuredItems: FeaturedItem[] = [
-    {
-      id: 1,
-      title: "iPhone 13 Pro",
-      description: "Excellent condition, barely used. Looking to swap for Android phone or laptop.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Electronics",
-      condition: "Like New",
-      location: "New York, NY",
-      rating: 4.9,
-      swapValue: "$800-900",
-    },
-    {
-      id: 2,
-      title: "Vintage Leather Jacket",
-      description: "Authentic 1980s leather jacket. Perfect for collectors or fashion enthusiasts.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Fashion",
-      condition: "Good",
-      location: "Los Angeles, CA",
-      rating: 4.7,
-      swapValue: "$150-200",
-    },
-    {
-      id: 3,
-      title: "Gaming Setup Bundle",
-      description: "Complete gaming setup including monitor, keyboard, mouse, and headset.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Gaming",
-      condition: "Very Good",
-      location: "Austin, TX",
-      rating: 4.8,
-      swapValue: "$400-500",
-    },
-    {
-      id: 4,
-      title: "Professional Camera Kit",
-      description: "Canon EOS R5 with multiple lenses and accessories. Perfect for photographers.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Photography",
-      condition: "Excellent",
-      location: "Seattle, WA",
-      rating: 5.0,
-      swapValue: "$2000-2500",
-    },
-    {
-      id: 5,
-      title: "Designer Handbag Collection",
-      description: "Authentic designer handbags from various luxury brands. Well-maintained.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Fashion",
-      condition: "Very Good",
-      location: "Miami, FL",
-      rating: 4.6,
-      swapValue: "$300-800",
-    },
-    {
-      id: 6,
-      title: "Mountain Bike",
-      description: "High-end mountain bike, perfect for trails. Recently serviced and ready to ride.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Sports",
-      condition: "Good",
-      location: "Denver, CO",
-      rating: 4.5,
-      swapValue: "$600-700",
-    },
-    {
-      id: 7,
-      title: "Professional Camera Kit",
-      description: "Canon EOS R5 with multiple lenses and accessories. Perfect for photographers.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Photography",
-      condition: "Excellent",
-      location: "Seattle, WA",
-      rating: 5.0,
-      swapValue: "$2000-2500",
-    },
-    {
-      id: 8,
-      title: "Designer Handbag Collection",
-      description: "Authentic designer handbags from various luxury brands. Well-maintained.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Fashion",
-      condition: "Very Good",
-      location: "Miami, FL",
-      rating: 4.6,
-      swapValue: "$300-800",
-    },
-    {
-      id: 9,
-      title: "Mountain Bike",
-      description: "High-end mountain bike, perfect for trails. Recently serviced and ready to ride.",
-      image: "/placeholder.svg?height=300&width=300",
-      category: "Sports",
-      condition: "Good",
-      location: "Denver, CO",
-      rating: 4.5,
-      swapValue: "$600-700",
-    },
-  ]
+        const body = await response.json()
+        setFeaturedItems(body.results)
+        console.log("Featured Items:", body)
+        // You can now set them in state if needed
+      } catch (error) {
+        console.error("Failed to fetch featured items:", error)
+      }
+    }
+    fetchFeaturedItems()
+
+  }, [])
+
+
+
 
   // Auto-advance carousel
   useEffect(() => {
