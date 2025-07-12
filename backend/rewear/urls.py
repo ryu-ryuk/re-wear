@@ -35,9 +35,13 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),      # login, refresh, logout
     path('api/', include('djoser.urls')),
     path('api/', include('djoser.urls.authtoken')),
+    # DJOSER auth endpoints (keeping for JWT refresh)
+    path('auth/', include('djoser.urls.jwt')),      # JWT refresh, verify, blacklist
 
-    # url path for items app
-    path('api/items/', include('items.urls')),
+    # ReWear API endpoints
+    path('api/', include('users.urls')),           # User management, auth, dashboard
+    path('api/items/', include('items.urls')),     # Item listings, search, management
+    path('api/swaps/', include('swaps.urls')),     # Swap requests and negotiations
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

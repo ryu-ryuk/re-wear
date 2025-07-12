@@ -24,4 +24,6 @@ collectstatic:
 
 createsuperuser:
 	docker compose exec backend .venv/bin/python manage.py createsuperuser
+test:
+	docker compose exec backend .venv/bin/python manage.py create_sample_items --count=20
 

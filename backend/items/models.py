@@ -1,12 +1,15 @@
 from django.conf import settings
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.text import slugify
 
 class Item(models.Model):
-    # defining choices for fields
+    # defining choices for fields - frontend friendly
     class Status(models.TextChoices):
         AVAILABLE = 'available', 'Available'
-        PENDING = 'pending', 'Pending'
-        SWAPPED = 'swapped', 'Swapped'
+        PENDING = 'pending', 'Pending'  # when in a swap negotiation
+        SWAPPED = 'swapped', 'Swapped'  # successfully exchanged
+        RESERVED = 'reserved', 'Reserved'  # temporarily held
 
     class Condition(models.TextChoices):
         NEW = 'new', 'New (with tags)'
@@ -14,28 +17,99 @@ class Item(models.Model):
         GOOD = 'good', 'Good'
         FAIR = 'fair', 'Fair'
 
+    class Category(models.TextChoices):
+        TOPS = 'tops', 'Tops'
+        BOTTOMS = 'bottoms', 'Bottoms'
+        DRESSES = 'dresses', 'Dresses'
+        OUTERWEAR = 'outerwear', 'Outerwear'
+        SHOES = 'shoes', 'Shoes'
+        ACCESSORIES = 'accessories', 'Accessories'
+        BAGS = 'bags', 'Bags'
+        ACTIVEWEAR = 'activewear', 'Activewear'
+        UNDERWEAR = 'underwear', 'Underwear'
+        OTHER = 'other', 'Other'
+
+    # Basic fields
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='items')
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    category = models.CharField(max_length=100) # e.g., 'tops', 'bottoms', 'dresses'
-    size = models.CharField(max_length=50) # e.g., 's', 'm', 'l', '32'
-    condition = models.CharField(max_length=20, choices=Condition.choices, default=Condition.GOOD)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.AVAILABLE)
+    title = models.CharField(max_length=255, help_text="Give your item a catchy title")
+    description = models.TextField(help_text="Describe the item, its story, why you're sharing it")
     
-    # admin-related fields
+    # Categorization
+    category = models.CharField(max_length=20, choices=Category.choices)
+    size = models.CharField(max_length=50, help_text="e.g., S, M, L, XL, 32, 8, etc.")
+    condition = models.CharField(max_length=20, choices=Condition.choices, default=Condition.GOOD)
+    
+    # Exchange info
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.AVAILABLE)
+    point_value = models.PositiveIntegerField(
+        default=10, 
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        help_text="Points required to redeem this item (1-100)"
+    )
+    
+    # Metadata for better UX
+    tags = models.CharField(
+        max_length=500, 
+        blank=True, 
+        help_text="Comma-separated tags (e.g., vintage, summer, casual, designer)"
+    )
+    color = models.CharField(max_length=50, blank=True, help_text="Primary color of the item")
+    brand = models.CharField(max_length=100, blank=True, help_text="Brand name (optional)")
+    
+    # Engagement metrics
+    view_count = models.PositiveIntegerField(default=0, help_text="Number of times viewed")
+    like_count = models.PositiveIntegerField(default=0, help_text="Number of likes/favorites")
+    
+    # Admin fields
     is_approved = models.BooleanField(default=False)
     is_featured = models.BooleanField(default=False)
+    rejection_reason = models.TextField(blank=True, help_text="Admin reason for rejection")
 
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['category', 'status']),
+            models.Index(fields=['is_approved', 'is_featured']),
+            models.Index(fields=['-created_at']),
+        ]
+
     def __str__(self):
-        return self.title
+        return f"{self.title} by {self.owner.username}"
+
+    def get_tags_list(self):
+        """Return tags as a list for frontend"""
+        if self.tags:
+            return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+        return []
+
+    def increment_view_count(self):
+        """Thread-safe view count increment"""
+        self.view_count = models.F('view_count') + 1
+        self.save(update_fields=['view_count'])
 
 class ItemImage(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='items/')
+    image = models.ImageField(upload_to='items/%Y/%m/')
+    alt_text = models.CharField(max_length=255, blank=True, help_text="Accessibility description")
+    is_primary = models.BooleanField(default=False, help_text="Main display image")
+    order = models.PositiveIntegerField(default=0, help_text="Display order")
+
+    class Meta:
+        ordering = ['order', 'id']
 
     def __str__(self):
         return f"Image for {self.item.title}"
+
+class ItemLike(models.Model):
+    """Track user likes/favorites for better recommendations"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'item']
 
