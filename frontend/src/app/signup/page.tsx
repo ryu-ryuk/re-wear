@@ -11,12 +11,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 const signupSchema = z
   .object({
-    firstName: z.string().min(2, "First name must be at least 2 characters"),
-    lastName: z.string().min(2, "Last name must be at least 2 characters"),
-    email: z.string().email("Please enter a valid email address"),
+    first_name: z.string().min(2, "First name must be at least 2 characters"),
+    last_name: z.string().min(2, "Last name must be at least 2 characters"),
+    username: z.string().min(4, "Username must be at least 4 characters"),
+    email: z.email("Please enter a valid email address"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -24,24 +26,26 @@ const signupSchema = z
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
         "Password must contain at least one uppercase letter, one lowercase letter, and one number",
       ),
-    confirmPassword: z.string(),
+    confirm_password: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.password === data.confirm_password, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
   })
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      first_name: "",
+      last_name: "",
+      username:"",
       email: "",
       password: "",
-      confirmPassword: "",
+      confirm_password: "",
     },
   })
 
@@ -49,9 +53,31 @@ export default function SignupPage() {
     setIsLoading(true)
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      console.log(values)
+      const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+      if (values.password !== values.confirm_password) {
+        toast.error("Passwords do not match")
+        return
+      }
+      const { confirm_password, ...cleanValues } = values
+      console.log("Submitting values:", cleanValues)
+      const response = await fetch(`${BASE_URL}/users/register/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(cleanValues),
+      })
+      const body = await response.json()
+      console.log(response.status, body)
+      if (!response.ok) {
+        toast.error(body.message || "Failed to create account. Please try again.")
+        return
+      }
+      localStorage.setItem("ReWearToken", body.tokens.access)
       toast.success("Account created successfully!")
+      setTimeout(()=>{}, 3000)
+      router.push("/app")
+
     } catch (error) {
       toast.error("Failed to create account. Please try again.")
     } finally {
@@ -73,7 +99,7 @@ export default function SignupPage() {
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="firstName"
+                  name="first_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>First name</FormLabel>
@@ -86,7 +112,7 @@ export default function SignupPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="lastName"
+                  name="last_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Last name</FormLabel>
@@ -98,6 +124,19 @@ export default function SignupPage() {
                   )}
                 />
               </div>
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="john" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -126,7 +165,7 @@ export default function SignupPage() {
               />
               <FormField
                 control={form.control}
-                name="confirmPassword"
+                name="confirm_password"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Confirm password</FormLabel>
