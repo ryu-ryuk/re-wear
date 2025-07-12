@@ -1,0 +1,28 @@
+[project]
+name = "rewear-backend"
+version = "0.1.0"
+description = "backend for the rewear app"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "django==5.2.4",
+    "djangorestframework==3.16.0",
+    "django-cors-headers==4.7.0",
+    "psycopg2-binary==2.9.10",
+    "python-dotenv==1.1.1",
+    "pillow==11.3.0",
+    "uvicorn==0.35.0",
+    "watchfiles==1.1.0",
+    "uvloop==0.21.0",
+    "httptools==0.6.4",
+    "anyio==4.9.0",
+    "click==8.2.1",
+    "h11==0.16.0",
+    "websockets==15.0.1",
+    "sqlparse==0.5.3",
+    "typing-extensions==4.14.1",
+    "pyyaml==6.0.2",
+    "django-unfold==0.62.0",
+    "whitenoise>=6.9.0",
+]
+
