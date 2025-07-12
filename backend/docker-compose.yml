@@ -19,11 +19,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      POSTGRES_USER=rewear
-      POSTGRES_PASSWORD=rewearpass
-      POSTGRES_DB=rewear_db
+      POSTGRES_USER: rewear
+      POSTGRES_PASSWORD: rewearpass
+      POSTGRES_DB: rewear_db
 
 volumes:
   media:
   postgres_data:
-
