@@ -19,6 +19,14 @@ The platform provides a seamless user experience with features like item listing
 - **Alok**
 - **Darunesh**
 
+## API Docs
+ Method | Endpoint               | Description                          |
+| ------ | ---------------------- | ------------------------------------ |
+| GET   | [/swagger](http://localhost:8000/swagger/)       | Swagger API |
+| GET   | [/redoc](http://localhost:8000/redoc/)         | Redoc API          |
+
+
+
 ## 🔐 Authentication APIs
 
 > Use **djoser** or **dj-rest-auth** for faster integration (or custom views).
