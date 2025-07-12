@@ -26,5 +26,13 @@ dependencies = [
     "whitenoise>=6.9.0",
     "djoser>=2.3.1",
     "djangorestframework-simplejwt>=5.5.0",
+    "asgiref>=3.9.1",
+    "cryptography>=45.0.5",
+    "oauthlib>=3.3.1",
+    "python3-openid>=3.2.0",
+    "requests>=2.32.4",
+    "requests-oauthlib>=2.0.0",
+    "social-auth-app-django>=5.5.1",
+    "social-auth-core>=4.7.0",
 ]
 
