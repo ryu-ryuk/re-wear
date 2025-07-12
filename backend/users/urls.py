@@ -91,7 +91,7 @@ const getLikedItems = async (token) => {
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, register_user, login_user, reported_by_me
+from .views import UserViewSet, register_user, login_user, reported_by_me, reported_about_me
 
 # Create router for user viewset
 router = DefaultRouter()
@@ -105,7 +105,8 @@ urlpatterns = [
     # User management endpoints (via viewset)
     path('', include(router.urls)),
 
-    path('/reported-by-me/', reported_by_me, name='reported_by_me'),
+    path('reported-by-me/', reported_by_me, name='reported_by_me'),
+    path('reported-about-me/', reported_about_me, name='reported_about_me'),
 ]
 
 # Generated URL patterns from router:

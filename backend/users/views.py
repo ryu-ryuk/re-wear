@@ -536,4 +536,19 @@ def reported_by_me(request):
     serializer = ItemListSerializer(items, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def reported_about_me(request):
+    """
+    Return every Item that the current user OWNS and that
+    other users have reported.
+    """
+    items= (
+        Item.objects
+            .filter(reports__item__owner=request.user)
+            .distinct()
+    )
+    serializer = ItemListSerializer(items, many=True)
+    return Response(serializer.data)
+
 
