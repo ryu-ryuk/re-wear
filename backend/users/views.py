@@ -112,7 +112,7 @@ class UserViewSet(ModelViewSet):
 
         # Item statistics
         total_items = user_items.count()
-        flagged_items = user_items.filter(is_flagged=True).count()
+        pending_approval = user_items.filter(is_approved=False).count()  # Items waiting for approval
         available_items = user_items.filter(status='available', is_approved=True).count()
         swapped_items = user_items.filter(status='swapped').count()
 
@@ -141,7 +141,7 @@ class UserViewSet(ModelViewSet):
             'total_points': total_points,
             'points_earned_this_month': points_earned_this_month,
             'total_items': total_items,
-            'flagged_items': flagged_items,
+            'pending_approval': pending_approval,
             'available_items': available_items,
             'swapped_items': swapped_items,
             'total_views': total_views,
