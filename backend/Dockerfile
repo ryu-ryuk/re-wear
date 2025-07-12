@@ -9,8 +9,7 @@ RUN pip install --upgrade pip && pip install uv
 COPY . /app
 RUN uv sync
 
-ENV PATH="/app/.venv/bin:$PATH"
+RUN chmod +x /app/start.sh
 
-RUN python manage.py collectstatic --noinput
+CMD ["/bin/sh", "/app/start.sh"]
 
-CMD ["uvicorn", "rewear.asgi:application", "--host", "0.0.0.0", "--port", "8000"]
