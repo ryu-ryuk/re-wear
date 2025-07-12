@@ -36,8 +36,8 @@ export default function BrowsePage() {
     min_points: "",
     max_points: ""
   })
-  const [categories, setCategories] = useState<string[]>([])
-  const [conditions, setConditions] = useState<string[]>([])
+  const [categories, setCategories] = useState<Array<{ value: string; label: string }>>([])
+  const [conditions, setConditions] = useState<Array<{ value: string; label: string }>>([])
   const [pagination, setPagination] = useState({
     count: 0,
     next: null as string | null,
@@ -188,30 +188,34 @@ export default function BrowsePage() {
               
               <Select
                 value={filters.category}
-                onValueChange={(value) => setFilters({ ...filters, category: value })}
+                onValueChange={(value) => setFilters({ ...filters, category: value === "all" ? "" : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {categories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               <Select
                 value={filters.condition}
-                onValueChange={(value) => setFilters({ ...filters, condition: value })}
+                onValueChange={(value) => setFilters({ ...filters, condition: value === "all" ? "" : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Condition" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Conditions</SelectItem>
+                  <SelectItem value="all">All Conditions</SelectItem>
                   {conditions.map(condition => (
-                    <SelectItem key={condition} value={condition}>{condition}</SelectItem>
+                    <SelectItem key={condition.value} value={condition.value}>
+                      {condition.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
