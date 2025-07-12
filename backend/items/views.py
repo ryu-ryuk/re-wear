@@ -33,6 +33,9 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
+        # Only authenticated users can modify objects
+        if not request.user.is_authenticated:
+            return False
         return obj.owner == request.user
 
 class ItemViewSet(viewsets.ModelViewSet):
@@ -53,9 +56,10 @@ class ItemViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        """Base queryset - only approved, available items for public"""
+        """Base queryset - all available items (auto-approved, excluding flagged ones)"""
         return Item.objects.filter(
-            is_approved=True, 
+            is_approved=True,
+            is_flagged=False, 
             status='available'
         ).select_related('owner').prefetch_related('images')
 

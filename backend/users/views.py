@@ -27,8 +27,15 @@ class UserViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
-        if self.action == 'retrieve' and self.get_object() != self.request.user:
-            return PublicUserSerializer
+        if self.action == 'retrieve':
+            # Only check if it's another user's profile if we have a pk and user is authenticated
+            try:
+                if (self.kwargs.get('pk') and 
+                    self.request.user.is_authenticated and 
+                    self.get_object() != self.request.user):
+                    return PublicUserSerializer
+            except:
+                pass  # If get_object fails, use default serializer
         elif self.action in ['update', 'partial_update']:
             return UserUpdateSerializer
         return UserProfileSerializer
@@ -98,7 +105,7 @@ class UserViewSet(ModelViewSet):
 
         # Item statistics
         total_items = user_items.count()
-        pending_approval = user_items.filter(is_approved=False).count()
+        flagged_items = user_items.filter(is_flagged=True).count()
         available_items = user_items.filter(status='available', is_approved=True).count()
         swapped_items = user_items.filter(status='swapped').count()
 
@@ -127,7 +134,7 @@ class UserViewSet(ModelViewSet):
             'total_points': total_points,
             'points_earned_this_month': points_earned_this_month,
             'total_items': total_items,
-            'pending_approval': pending_approval,
+            'flagged_items': flagged_items,
             'available_items': available_items,
             'swapped_items': swapped_items,
             'total_views': total_views,
@@ -340,7 +347,7 @@ class UserViewSet(ModelViewSet):
         stats = {
             'total_items': user.items.count(),
             'available_items': user.items.filter(status='available', is_approved=True).count(),
-            'pending_approval': user.items.filter(is_approved=False).count(),
+            'flagged_items': user.items.filter(is_flagged=True).count(),
             'total_views': user.items.aggregate(total=Sum('view_count'))['total'] or 0,
             'total_likes': user.items.aggregate(total=Sum('like_count'))['total'] or 0,
             'active_swaps': SwapRequest.objects.filter(
