@@ -1,12 +1,26 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Item, ItemImage, ItemLike, PlatformConfig
+from .models import Item, ItemImage, ItemLike, PlatformConfig, ItemReport
+from unfold.decorators import action , display
 
 class ItemImageInline(TabularInline):
     model = ItemImage
     extra = 1
     fields = ('image', 'alt_text', 'is_primary', 'order')
     ordering = ['order', 'id']
+    
+class ItemReportInline(TabularInline):
+    model = ItemReport
+    extra = 0
+    fields = (
+        'reported_by',
+        'reason',
+        'created_at',
+        'resolved',
+        'reviewed_by',
+    )
+    readonly_fields = ('created_at',)
+    ordering = ['-created_at']
 
 @admin.register(Item)
 class ItemAdmin(ModelAdmin):
@@ -104,6 +118,26 @@ class ItemAdmin(ModelAdmin):
         updated = queryset.update(is_featured=False)
         self.message_user(request, f'{updated} items were unfeatured.')
     unfeature_items.short_description = "Remove featured status"
+    
+@admin.register(ItemReport)
+class ItemReportAdmin(ModelAdmin):
+    list_display = (
+        'item', 'reported_by', 'reason_short', 'created_at', 'resolved', 'reviewed_by'
+    )
+    list_filter = ('resolved', 'created_at')
+    search_fields = ('item__title', 'reported_by__username', 'reason')
+    readonly_fields = ('created_at',)
+    raw_id_fields = ('item', 'reported_by', 'reviewed_by')
+    actions = ['mark_resolved']
+
+    @display(ordering='reason', description='Reason')
+    def reason_short(self, obj):
+        return (obj.reason[:50] + '…') if len(obj.reason) > 50 else obj.reason
+
+    def mark_resolved(self, request, queryset):
+        updated = queryset.update(resolved=True, reviewed_by=request.user)
+        self.message_user(request, f'{updated} reports marked resolved.')
+    mark_resolved.short_description = "Mark selected reports as resolved"
 
 @admin.register(ItemLike)
 class ItemLikeAdmin(ModelAdmin):
