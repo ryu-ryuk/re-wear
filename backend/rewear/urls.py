@@ -8,10 +8,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", lambda r: JsonResponse({"status": "rewear backend running"})),
 
-    # djoser URLs
-    path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.jwt')),
-
+    # DJOSER auth endpoints
+    path('api/auth/', include('djoser.urls')),          # user, register, me
+    path('api/auth/', include('djoser.urls.jwt')),      # login, refresh, logout
 ]
 
 
