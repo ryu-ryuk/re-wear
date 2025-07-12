@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Upload, X, Save, ArrowLeft, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
+import { itemsAPI, userAPI, isAuthenticated } from "@/lib/api"
 
 interface ListingImage {
   id: string
@@ -60,24 +61,53 @@ export default function AddEditListingPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    // For now, just use mock data until API is fixed
-    setCategories([
-      { value: 'tops', label: 'Tops' },
-      { value: 'bottoms', label: 'Bottoms' },
-      { value: 'dresses', label: 'Dresses' },
-      { value: 'shoes', label: 'Shoes' },
-      { value: 'accessories', label: 'Accessories' }
-    ])
+    if (!isAuthenticated()) {
+      router.push('/login')
+      return
+    }
     
-    setConditions([
-      { value: 'new', label: 'New (with tags)' },
-      { value: 'excellent', label: 'Excellent' },
-      { value: 'good', label: 'Good' },
-      { value: 'fair', label: 'Fair' }
-    ])
-    
-    setCategoriesLoading(false)
-  }, [])
+    loadUserData()
+    loadCategories()
+  }, [router])
+
+  const loadUserData = async () => {
+    try {
+      const userData = await userAPI.getProfile()
+      setUser(userData)
+    } catch (error) {
+      console.error('Failed to load user data:', error)
+      toast.error("Failed to load user data")
+    }
+  }
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true)
+      const data = await itemsAPI.getCategories()
+      setCategories(data.categories)
+      setConditions(data.conditions)
+    } catch (error) {
+      console.error('Failed to load categories:', error)
+      toast.error("Failed to load form options")
+      // Fallback to mock data if API fails
+      setCategories([
+        { value: 'tops', label: 'Tops' },
+        { value: 'bottoms', label: 'Bottoms' },
+        { value: 'dresses', label: 'Dresses' },
+        { value: 'shoes', label: 'Shoes' },
+        { value: 'accessories', label: 'Accessories' }
+      ])
+      
+      setConditions([
+        { value: 'new', label: 'New (with tags)' },
+        { value: 'excellent', label: 'Excellent' },
+        { value: 'good', label: 'Good' },
+        { value: 'fair', label: 'Fair' }
+      ])
+    } finally {
+      setCategoriesLoading(false)
+    }
+  }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
@@ -156,7 +186,7 @@ export default function AddEditListingPage() {
       return false
     }
     
-    if (images.length === 0) {
+    if (images.filter(img => img.file).length === 0) {
       toast.error("At least one image is required")
       return false
     }
@@ -164,15 +194,53 @@ export default function AddEditListingPage() {
     return true
   }
 
+  const createFormData = (): FormData => {
+    const formData = new FormData()
+    
+    formData.append('title', title.trim())
+    formData.append('description', description.trim())
+    formData.append('point_value', pointValue)
+    formData.append('category', category)
+    formData.append('condition', condition)
+    formData.append('size', size.trim())
+    
+    if (color.trim()) formData.append('color', color.trim())
+    if (brand.trim()) formData.append('brand', brand.trim())
+    
+    // Convert tags to array
+    if (tags.trim()) {
+      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      tagsArray.forEach(tag => formData.append('tags_list', tag))
+    }
+    
+    // Add new images
+    const newImages = images.filter(img => img.file)
+    newImages.forEach(img => {
+      formData.append('uploaded_images', img.file)
+    })
+    
+    return formData
+  }
+
   const saveListing = async () => {
     if (!validateForm()) return
     
     setLoading(true)
     try {
-      // Mock save for now
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const formData = createFormData()
       
-      toast.success("Listing created successfully!")
+      let result
+      if (isEditing && listingId) {
+        result = await itemsAPI.updateItem(parseInt(listingId), formData)
+        toast.success("Listing updated successfully!")
+      } else {
+        result = await itemsAPI.createItem(formData)
+        toast.success("Listing created successfully!")
+      }
+      
+      console.log('Item created/updated:', result)
+      
+      // Redirect to dashboard after successful save
       router.push('/app/dashboard')
     } catch (error: any) {
       console.error('Save error:', error)
@@ -217,12 +285,14 @@ export default function AddEditListingPage() {
           </div>
           <div className="flex items-center gap-4">
             <Avatar>
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback>U</AvatarFallback>
+              <AvatarImage src={user?.profile_picture || "/placeholder.svg"} />
+              <AvatarFallback>
+                {user?.username?.slice(0, 2).toUpperCase() || "U"}
+              </AvatarFallback>
             </Avatar>
             <div className="text-right">
-              <p className="font-medium">User</p>
-              <p className="text-sm text-gray-600">100 points</p>
+              <p className="font-medium">{user?.username || "User"}</p>
+              <p className="text-sm text-gray-600">{user?.points || 0} points</p>
             </div>
           </div>
         </div>
