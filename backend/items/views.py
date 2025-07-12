@@ -6,7 +6,7 @@ from django.db.models import Q, F
 from .models import Item, ItemLike
 from .serializers import (
     ItemListSerializer, ItemDetailSerializer, 
-    ItemCreateUpdateSerializer, CategorySerializer, ItemStatsSerializer
+    ItemCreateUpdateSerializer, CategorySerializer, ItemReportCreateSerializer, ItemStatsSerializer
 )
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -349,3 +349,30 @@ class ItemViewSet(viewsets.ModelViewSet):
 
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def report_item(request):
+    """
+    Allow an authenticated user to report an item.
+    Expected body:
+        {
+          "item": <item_id>,
+          "reason": "<text>"
+        }
+    """
+    serializer = ItemReportCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    # enforce unique_together: one report per user per item
+    report, created = ItemReport.objects.get_or_create(
+        item_id=serializer.validated_data['item'],
+        reported_by=request.user,
+        defaults={'reason': serializer.validated_data['reason']},
+    )
+    if not created:
+        return Response(
+            {'detail': 'You have already reported this item.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return Response(serializer.data, status=status.HTTP_201_CREATED)

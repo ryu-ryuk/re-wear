@@ -41,7 +41,7 @@ POST /api/items/{id}/like/
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ItemViewSet
+from .views import ItemViewSet, report_item
 
 # Auto-generate RESTful URLs for the ItemViewSet
 router = DefaultRouter()
@@ -50,6 +50,8 @@ router.register('', ItemViewSet, basename='item')
 urlpatterns = [
     path('', include(router.urls)),
    # path('')
+    path('items/report/', report_item, name='report_item')
+
 ]
 
 # Generated URL patterns:
