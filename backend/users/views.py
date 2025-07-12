@@ -13,7 +13,7 @@ from items.serializers import ItemListSerializer
 from swaps.models import SwapRequest
 from .models import User
 from .serializers import (
-    UserProfileSerializer, UserDashboardStatsSerializer,
+    UserRegistrationSerializer, UserProfileSerializer, UserDashboardStatsSerializer,
     PublicUserSerializer, UserUpdateSerializer
 )
 
@@ -49,8 +49,9 @@ class UserViewSet(ModelViewSet):
         """
         user = self.get_object()
         
-        # Check if user has made their profile private
-        if user.is_private and user != request.user:
+        # Check if user has made their profile private (only for authenticated users)
+        if (user.is_private and 
+            (not request.user.is_authenticated or user != request.user)):
             return Response(
                 {'detail': 'This user has made their profile private'}, 
                 status=status.HTTP_403_FORBIDDEN
@@ -416,60 +417,37 @@ def register_user(request):
     """
     📝 POST /api/users/register/
     
-    Register a new user account.
+    Register a new user account. Frontend handles password confirmation.
     
-    Required fields:
-    - username: Unique username
-    - email: Email address
-    - password: Password
-    - password_confirm: Password confirmation
+    SUCCESS RESPONSE (201):
+    {
+        "user": { ... user profile data ... },
+        "tokens": {
+            "refresh": "jwt_refresh_token",
+            "access": "jwt_access_token"
+        },
+        "message": "Account created successfully! Welcome to ReWear! You received 100 bonus points!"
+    }
     
-    Optional fields:
-    - first_name: First name
-    - last_name: Last name
-    - location: User location
+    ERROR RESPONSES (400):
+    Field-specific errors:
+    {
+        "username": ["A user with this username already exists."],
+        "email": ["A user with this email already exists."],
+        "password": ["This password is too short. It must contain at least 8 characters."]
+    }
+    
+    Missing required fields:
+    {
+        "username": ["This field is required."],
+        "email": ["This field is required."],
+        "password": ["This field is required."]
+    }
     """
-    data = request.data
+    serializer = UserRegistrationSerializer(data=request.data)
     
-    # Validation
-    required_fields = ['username', 'email', 'password', 'password_confirm']
-    for field in required_fields:
-        if not data.get(field):
-            return Response(
-                {'error': f'{field} is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    if data['password'] != data['password_confirm']:
-        return Response(
-            {'error': 'Passwords do not match'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Check if user already exists
-    if User.objects.filter(username=data['username']).exists():
-        return Response(
-            {'error': 'Username already exists'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-        
-    if User.objects.filter(email=data['email']).exists():
-        return Response(
-            {'error': 'Email already registered'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Create user
-    try:
-        user = User.objects.create_user(
-            username=data['username'],
-            email=data['email'],
-            password=data['password'],
-            first_name=data.get('first_name', ''),
-            last_name=data.get('last_name', ''),
-            location=data.get('location', ''),
-            points=100  # Welcome bonus points!
-        )
+    if serializer.is_valid():
+        user = serializer.save()
         
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
@@ -480,14 +458,11 @@ def register_user(request):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             },
-            'message': 'Account created successfully! Welcome to ReWear!'
+            'message': 'Account created successfully! Welcome to ReWear! You received 100 bonus points!'
         }, status=status.HTTP_201_CREATED)
-        
-    except Exception as e:
-        return Response(
-            {'error': 'Failed to create account. Please try again.'}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    
+    # Return field-specific errors
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -497,9 +472,26 @@ def login_user(request):
     
     Login with username/email and password.
     
-    Required fields:
-    - username: Username or email
-    - password: Password
+    SUCCESS RESPONSE (200):
+    {
+        "user": { ... user profile data ... },
+        "tokens": {
+            "refresh": "jwt_refresh_token",
+            "access": "jwt_access_token"
+        },
+        "message": "Welcome back, John!"
+    }
+    
+    ERROR RESPONSES (400/401):
+    Missing fields:
+    {
+        "error": "Username and password are required"
+    }
+    
+    Invalid credentials:
+    {
+        "error": "Invalid credentials"
+    }
     """
     username = request.data.get('username')
     password = request.data.get('password')
