@@ -8,14 +8,29 @@
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-a6e3a1?style=for-the-badge)
+  
 
 *A community-driven platform for sustainable fashion through clothing swaps and point-based redemption*
 
 </div>
 
+<div align="center">
+  
+  ## ~ Demo Video ~
+  
+  <video width="800" controls>
+    <source src="https://files.catbox.moe/uzxtr7.mp4" type="video/mp4">
+    <a href="https://files.catbox.moe/uzxtr7.mp4">Watch Demo Video</a>
+  </video>
+</div>
+
 ## Problem Statement
 
 ReWear addresses the growing issue of textile waste by creating a platform where users can **exchange unused clothing** through direct swaps or a point-based redemption system. The platform promotes sustainable fashion practices, reduces clothing waste, and builds a community around conscious consumption.
+
+---
+
 
 ## Platform Overview
 
