@@ -59,7 +59,6 @@ export default function SignupPage() {
         return
       }
       const { confirm_password, ...cleanValues } = values
-      console.log("Submitting values:", cleanValues)
       const response = await fetch(`${BASE_URL}/users/register/`, {
         method: "POST",
         headers: {
@@ -68,7 +67,6 @@ export default function SignupPage() {
         body: JSON.stringify(cleanValues),
       })
       const body = await response.json()
-      console.log(response.status, body)
       if (!response.ok) {
         toast.error(body.message || "Failed to create account. Please try again.")
         return

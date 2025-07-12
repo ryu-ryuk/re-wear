@@ -11,19 +11,21 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 const loginSchema = z.object({
-  email: z.email("Please enter a valid email address"),
+  username: z.string().min(4, "Username should be atest 4 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 })
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   })
@@ -32,9 +34,25 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       // Simulate API call
+      const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+      const response = await fetch(`${BASE_URL}/users/login/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      })
+      const body = await response.json()
+      if (!response.ok) {
+        toast.error("Login failed. Please check your credentials.")
+        return
+      }
       await new Promise((resolve) => setTimeout(resolve, 2000))
       console.log(values)
-      toast.success("Login successful!")
+      localStorage.setItem("ReWearToken", body.tokens.access)
+      toast.success("Login successful! redirecting..")
+      router.push("/app")
+
     } catch (error) {
       toast.error("Login failed. Please try again.")
     } finally {
@@ -57,12 +75,12 @@ export default function LoginPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="m@example.com" {...field} />
+                      <Input placeholder="john" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
