@@ -3,6 +3,44 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 
+class PlatformConfig(models.Model):
+    """
+    🔧 Platform Configuration - Admin configurable settings
+    
+    Singleton model to store platform-wide settings that admins can modify.
+    """
+    featured_items_count = models.PositiveIntegerField(
+        default=6,
+        validators=[MinValueValidator(1), MaxValueValidator(20)],
+        help_text="Default number of featured items to show (1-20)"
+    )
+    
+    # Future admin settings can be added here
+    # max_swap_requests_per_day = models.PositiveIntegerField(default=10)
+    # welcome_bonus_points = models.PositiveIntegerField(default=100)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Platform Configuration"
+        verbose_name_plural = "Platform Configuration"
+    
+    def __str__(self):
+        return f"Platform Config (Featured: {self.featured_items_count})"
+    
+    def save(self, *args, **kwargs):
+        # Ensure only one instance exists (singleton pattern)
+        if not self.pk and PlatformConfig.objects.exists():
+            raise ValueError("Only one Platform Configuration instance is allowed")
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_config(cls):
+        """Get or create the singleton configuration instance"""
+        config, created = cls.objects.get_or_create(pk=1)
+        return config
+
 class Item(models.Model):
     # defining choices for fields - frontend friendly
     class Status(models.TextChoices):
@@ -62,9 +100,29 @@ class Item(models.Model):
     
     # Admin fields
     is_approved = models.BooleanField(default=True, help_text="Auto-approved, can be flagged for review")
+    is_rejected = models.BooleanField(default=False, help_text="Explicitly rejected by admin")
     is_featured = models.BooleanField(default=False)
     is_flagged = models.BooleanField(default=False, help_text="Flagged for admin review")
     rejection_reason = models.TextField(blank=True, help_text="Admin reason for rejection")
+    
+    # Admin tracking fields
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True, 
+        related_name='approved_items',
+        help_text="Admin who approved this item"
+    )
+    rejected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True, 
+        related_name='rejected_items',
+        help_text="Admin who rejected this item"
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    featured_at = models.DateTimeField(null=True, blank=True)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

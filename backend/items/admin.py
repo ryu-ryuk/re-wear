@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Item, ItemImage, ItemLike
+from .models import Item, ItemImage, ItemLike, PlatformConfig
 
 class ItemImageInline(TabularInline):
     model = ItemImage
@@ -111,3 +111,33 @@ class ItemLikeAdmin(ModelAdmin):
     list_filter = ('created_at',)
     search_fields = ('user__username', 'item__title')
     readonly_fields = ('created_at',)
+
+@admin.register(PlatformConfig)
+class PlatformConfigAdmin(ModelAdmin):
+    """
+    🔧 Platform Configuration Admin
+    
+    Configure platform-wide settings that affect the frontend experience.
+    """
+    list_display = ('featured_items_count', 'updated_at')
+    
+    fieldsets = (
+        ('Featured Items Settings', {
+            'fields': ('featured_items_count',),
+            'description': 'Configure how many featured items are shown by default on the homepage/landing page.'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    readonly_fields = ('created_at', 'updated_at')
+    
+    def has_add_permission(self, request):
+        # Only allow one instance (singleton)
+        return not PlatformConfig.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # Don't allow deletion of the config
+        return False

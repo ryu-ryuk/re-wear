@@ -157,7 +157,14 @@ DJOSER = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# ========================================
+# REWEAR PLATFORM SETTINGS
+# ========================================
+
+# Featured Items Configuration - Admin Configurable
+FEATURED_ITEMS_DEFAULT_COUNT = int(os.getenv("FEATURED_ITEMS_DEFAULT_COUNT", "6"))
+FEATURED_ITEMS_MAX_COUNT = int(os.getenv("FEATURED_ITEMS_MAX_COUNT", "20"))
+
 UNFOLD = {
     "SITE_TITLE": _("ReWear Admin"),
     "SITE_HEADER": _("ReWear Admin Panel"),
@@ -201,6 +208,12 @@ UNFOLD = {
                         "icon": "sync_alt",
                         "model": "swaps.SwapRequest",
                         "app": "swaps"
+                    },
+                    {
+                        "title": "Platform Settings",
+                        "icon": "settings",
+                        "model": "items.PlatformConfig",
+                        "app": "items"
                     },
                 ],
             },

@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q, F
-from .models import Item, ItemLike
+from django.conf import settings
+from .models import Item, ItemLike, PlatformConfig
 from .serializers import (
     ItemListSerializer, ItemDetailSerializer, 
     ItemCreateUpdateSerializer, CategorySerializer, ItemReportCreateSerializer, ItemStatsSerializer
@@ -105,24 +106,73 @@ class ItemViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='featured')
+    @action(detail=False, methods=['get'], url_path='featured', permission_classes=[permissions.AllowAny])
     def featured(self, request):
         """
-        ⭐ GET /api/items/featured/
+        ⭐ GET /api/items/featured/?limit=6
         
-        Get featured items for homepage carousel and promotion.
-        Returns max 10 featured items, ordered by most recent.
+        Get featured items for homepage and landing page.
+        🔓 PUBLIC ENDPOINT - No authentication required for landing page.
+        
+        Strategy (Smart Fallback):
+        1. First, get admin-featured items (is_featured=True) 
+        2. If not enough, fill remaining slots with most liked items
+        3. Returns exactly the requested number of items
+        
+        Query Parameters:
+        - limit: Number of items to return (default: admin-configurable, max: 20)
         
         Perfect for:
-        - Homepage hero section
-        - Featured items carousel
-        - Promotional displays
+        - Landing page hero section
+        - Featured items carousel  
+        - Marketing showcases
+        
+        Example: /api/items/featured/?limit=8
         """
-        featured_items = self.get_queryset().filter(is_featured=True)[:10]
+        # Get admin-configured default count
+        config = PlatformConfig.get_config()
+        default_count = config.featured_items_count
+        
+        # Get number of items requested (default from admin config, max 20 for performance)
+        try:
+            limit = int(request.query_params.get('limit', default_count))
+            limit = min(max(limit, 1), settings.FEATURED_ITEMS_MAX_COUNT)  # Clamp between 1 and max
+        except (ValueError, TypeError):
+            limit = default_count
+        
+        # Step 1: Get admin-featured items first (curated by admin)
+        admin_featured = self.get_queryset().filter(is_featured=True).order_by('-created_at')
+        
+        # Step 2: If we need more items, get most liked items (algorithmic)
+        featured_count = admin_featured.count()
+        
+        if featured_count < limit:
+            # Get most liked items that aren't already admin-featured
+            most_liked = self.get_queryset().exclude(
+                id__in=admin_featured.values_list('id', flat=True)
+            ).order_by('-like_count', '-view_count', '-created_at')
+            
+            # Combine admin featured + most liked to get requested amount
+            remaining_needed = limit - featured_count
+            additional_items = most_liked[:remaining_needed]
+            
+            # Combine the querysets
+            featured_items = list(admin_featured) + list(additional_items)
+        else:
+            # We have enough admin-featured items, just take the requested amount
+            featured_items = admin_featured[:limit]
+        
         serializer = ItemListSerializer(featured_items, many=True, context={'request': request})
         return Response({
             'results': serializer.data,
-            'count': featured_items.count()
+            'count': len(featured_items),
+            'limit': limit,
+            'strategy': {
+                'admin_featured': min(featured_count, limit),
+                'algorithmic_popular': max(0, limit - featured_count),
+                'total': len(featured_items)
+            },
+            'message': f'Featured items (admin curated + popular fallback)'
         })
 
     @action(detail=False, methods=['get'], url_path='my', permission_classes=[permissions.IsAuthenticated])

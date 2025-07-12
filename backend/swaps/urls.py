@@ -16,7 +16,10 @@ POST   /api/swaps/{id}/reject/        - Reject swap (item owner only)
 POST   /api/swaps/{id}/complete/      - Mark swap as completed (both parties)
 POST   /api/swaps/{id}/cancel/        - Cancel swap (requester only)
 
-💡 SWAP FLOW:
+� POINTS REDEMPTION
+POST   /api/swaps/redeem/             - Redeem item using points (no swap needed)
+
+�💡 SWAP FLOW:
 1. User A sees User B's item and wants to swap
 2. User A creates swap request offering their item
 3. User B (item owner) accepts or rejects
@@ -33,13 +36,14 @@ POST   /api/swaps/{id}/cancel/        - Cancel swap (requester only)
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SwapRequestViewSet
+from .views import SwapRequestViewSet, redeem_item
 
 # Create router for swap requests
 router = DefaultRouter()
 router.register('', SwapRequestViewSet, basename='swap')
 
 urlpatterns = [
+    path('redeem/', redeem_item, name='redeem_item'),
     path('', include(router.urls)),
 ]
 

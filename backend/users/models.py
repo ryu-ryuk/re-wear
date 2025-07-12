@@ -13,3 +13,26 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+    def can_redeem_item(self, item):
+        """Check if user can redeem a specific item"""
+        return (
+            self.points >= item.point_value and 
+            item.owner != self and
+            item.status == 'available' and
+            item.is_approved
+        )
+    
+    def deduct_points(self, amount):
+        """Safely deduct points from user account"""
+        if self.points >= amount:
+            self.points -= amount
+            self.save()
+            return True
+        return False
+    
+    def add_points(self, amount):
+        """Add points to user account"""
+        self.points += amount
+        self.save()
+        return self.points
+

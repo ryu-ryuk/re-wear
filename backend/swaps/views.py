@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
 from .models import SwapRequest
@@ -193,3 +193,112 @@ class SwapRequestViewSet(viewsets.ModelViewSet):
         return Response({
             'message': 'Swap request cancelled.'
         })
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def redeem_item(request):
+    """
+    💰 POST /api/swaps/redeem/
+    
+    Redeem an item using points instead of swapping.
+    User "purchases" the item with their accumulated points.
+    
+    Required fields:
+    - item_id: ID of item to redeem
+    
+    SUCCESS RESPONSE (200):
+    {
+        "message": "Item redeemed successfully! You now own this item.",
+        "points_deducted": 25,
+        "remaining_points": 75,
+        "item": { ... item details ... }
+    }
+    
+    ERROR RESPONSES (400):
+    {
+        "message": "Insufficient points. You need 25 points but only have 15."
+    }
+    
+    {
+        "message": "This item is not available for redemption."
+    }
+    
+    {
+        "message": "You cannot redeem your own item."
+    }
+    """
+    from items.models import Item
+    from items.serializers import ItemDetailSerializer
+    from django.db import transaction
+    
+    item_id = request.data.get('item_id')
+    
+    if not item_id:
+        return Response({
+            'message': 'Item ID is required.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        item = Item.objects.get(id=item_id)
+    except Item.DoesNotExist:
+        return Response({
+            'message': 'Item not found.'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    user = request.user
+    
+    # Validation checks
+    if item.owner == user:
+        return Response({
+            'message': 'You cannot redeem your own item.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    if item.status != 'available':
+        return Response({
+            'message': 'This item is not available for redemption.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not item.is_approved:
+        return Response({
+            'message': 'This item is not approved for redemption.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if user has enough points
+    required_points = item.point_value
+    if user.points < required_points:
+        return Response({
+            'message': f'Insufficient points. You need {required_points} points but only have {user.points}.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Perform the redemption (atomic transaction)
+    try:
+        with transaction.atomic():
+            # Deduct points from user
+            user.points -= required_points
+            user.save()
+            
+            # Update item status and ownership
+            original_owner = item.owner
+            item.owner = user
+            item.status = 'swapped'  # Mark as redeemed/swapped
+            item.save()
+            
+            # Award points to original owner (incentive for listing items)
+            original_owner.points += (required_points // 2)  # Give half the points back as reward
+            original_owner.save()
+            
+            # Create a record for this redemption (optional - for tracking)
+            # We could create a Redemption model later for better tracking
+            
+        return Response({
+            'message': 'Item redeemed successfully! You now own this item.',
+            'points_deducted': required_points,
+            'remaining_points': user.points,
+            'points_awarded_to_seller': required_points // 2,
+            'item': ItemDetailSerializer(item, context={'request': request}).data
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'message': 'Failed to process redemption. Please try again.'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
