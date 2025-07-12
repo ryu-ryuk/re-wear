@@ -9,6 +9,9 @@ migrate:
 makemigrations:
 	python manage.py makemigrations
 
+collectstatic:
+	python manage.py collectstatic --noinput
+
 shell:
 	python manage.py shell
 
@@ -16,8 +19,8 @@ superuser:
 	python manage.py createsuperuser
 
 up:
+	make collectstatic
 	docker compose up --watch
-
 
 down:
 	docker compose down
