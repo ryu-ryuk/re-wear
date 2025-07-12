@@ -2,9 +2,10 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q, F
 from django.conf import settings
-from .models import Item, ItemLike, PlatformConfig
+from .models import Item, ItemLike, ItemImage, PlatformConfig
 from .serializers import (
     ItemListSerializer, ItemDetailSerializer, 
     ItemCreateUpdateSerializer, CategorySerializer, ItemReportCreateSerializer, ItemStatsSerializer
@@ -284,6 +285,61 @@ class ItemViewSet(viewsets.ModelViewSet):
             'liked': liked,
             'like_count': item.like_count
         })
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated], 
+            parser_classes=[MultiPartParser, FormParser], url_path='upload-image')
+    def upload_image(self, request, pk=None):
+        """
+        📸 POST /api/items/{id}/upload-image/
+        
+        Upload an image for an item. Only item owner can upload images.
+        
+        Form Data:
+        - image: Image file (required)
+        - alt_text: Alt text for accessibility (optional)
+        - is_primary: Set as primary image (optional, default: False)
+        - order: Display order (optional, default: 0)
+        
+        Response: Created ItemImage data with image URL
+        """
+        item = self.get_object()
+        
+        # Check if user owns the item
+        if item.owner != request.user:
+            return Response(
+                {'error': 'You can only upload images to your own items'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Get uploaded image
+        image_file = request.FILES.get('image')
+        if not image_file:
+            return Response(
+                {'error': 'Image file is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create ItemImage
+        item_image = ItemImage.objects.create(
+            item=item,
+            image=image_file,
+            alt_text=request.data.get('alt_text', ''),
+            is_primary=request.data.get('is_primary', 'false').lower() == 'true',
+            order=int(request.data.get('order', 0))
+        )
+        
+        # If this is set as primary, remove primary status from other images
+        if item_image.is_primary:
+            ItemImage.objects.filter(item=item).exclude(id=item_image.id).update(is_primary=False)
+        
+        return Response({
+            'id': item_image.id,
+            'image': request.build_absolute_uri(item_image.image.url),
+            'alt_text': item_image.alt_text,
+            'is_primary': item_image.is_primary,
+            'order': item_image.order,
+            'message': 'Image uploaded successfully'
+        }, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'], url_path='search')
     def advanced_search(self, request):
