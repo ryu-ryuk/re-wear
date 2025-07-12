@@ -194,8 +194,22 @@ class ItemStatsSerializer(serializers.Serializer):
     featured_items = serializers.IntegerField()
 
 
+
 class ItemReportSerializer(serializers.ModelSerializer):
+    # optional nested read-only fields
+    item_title = serializers.CharField(source='item.title', read_only=True)
+    reported_by_username = serializers.CharField(source='reported_by.username', read_only=True)
+
     class Meta:
         model = ItemReport
-        fields = ['id', 'item', 'reported_by', 'reason', 'created_at', 'resolved', 'reviewed_by']
-        read_only_fields = ['id', 'reported_by', 'created_at', 'resolved', 'reviewed_by']
+        fields = [
+            'id',
+            'item',
+            'item_title',
+            'reported_by',
+            'reported_by_username',
+            'reason',
+            'created_at',
+            'resolved',
+            'reviewed_by',
+        ]
