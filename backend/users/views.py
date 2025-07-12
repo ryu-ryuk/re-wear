@@ -491,7 +491,7 @@ def login_user(request):
     
     if not username or not password:
         return Response(
-            {'message': 'Please provide both username and password.'}, 
+            {'message': 'Gimme both username and password, nyan?'}, 
             status=status.HTTP_400_BAD_REQUEST
         )
     
@@ -518,7 +518,7 @@ def login_user(request):
         })
     else:
         return Response(
-            {'message': 'Invalid credentials. Please check your username and password.'}, 
+            {'message': 'oops! invalid creds! Please check your username and password.'}, 
             status=status.HTTP_401_UNAUTHORIZED
         )
 
