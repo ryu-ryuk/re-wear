@@ -61,8 +61,9 @@ class Item(models.Model):
     like_count = models.PositiveIntegerField(default=0, help_text="Number of likes/favorites")
     
     # Admin fields
-    is_approved = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=True, help_text="Auto-approved, can be flagged for review")
     is_featured = models.BooleanField(default=False)
+    is_flagged = models.BooleanField(default=False, help_text="Flagged for admin review")
     rejection_reason = models.TextField(blank=True, help_text="Admin reason for rejection")
 
     # Timestamps
