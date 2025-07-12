@@ -18,11 +18,8 @@
 <div align="center">
   
   ## ~ Demo Video ~
-  
-  <video width="800" controls>
-    <source src="https://files.catbox.moe/uzxtr7.mp4" type="video/mp4">
-    <a href="https://files.catbox.moe/uzxtr7.mp4">Watch Demo Video</a>
-  </video>
+
+  https://github.com/user-attachments/assets/ba6ee43f-bb2d-49a0-a565-c07e9bab9ea8
 </div>
 
 ## Problem Statement
