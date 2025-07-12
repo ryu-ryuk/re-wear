@@ -53,7 +53,7 @@ export default function DashboardPage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [user, setUser] = useState<User|null>()
+  const [user, setUser] = useState<User | null>()
   useEffect(() => {
     const storedUser = localStorage.getItem("ReWearUser")
     if (storedUser) {
@@ -81,14 +81,17 @@ export default function DashboardPage() {
   ]
 
   const categories: Category[] = [
-    { id: 1, name: "Electronics", icon: "📱", count: 245 },
-    { id: 2, name: "Fashion", icon: "👕", count: 189 },
-    { id: 3, name: "Home & Garden", icon: "🏠", count: 156 },
-    { id: 4, name: "Sports", icon: "⚽", count: 98 },
-    { id: 5, name: "Books", icon: "📚", count: 234 },
-    { id: 6, name: "Beauty", icon: "💄", count: 167 },
+    { "id": 1, "name": "Tops", "icon": "👕", "count": 5 },
+    { "id": 2, "name": "Bottoms", "icon": "👖", "count": 4 },
+    { "id": 3, "name": "Dresses", "icon": "👗", "count": 5 },
+    { "id": 4, "name": "Outerwear", "icon": "🧥", "count": 7 },
+    { "id": 5, "name": "Shoes", "icon": "👟", "count": 12 },
+    { "id": 6, "name": "Accessories", "icon": "👒", "count": 12 },
+    { "id": 7, "name": "Bags", "icon": "👜", "count": 19 },
+    { "id": 8, "name": "Activewear", "icon": "🤸", "count": 11 },
+    { "id": 9, "name": "Underwear", "icon": "🩲", "count": 2 },
+    { "id": 10, "name": "Other", "icon": "📦", "count": 2 }
   ]
-
   const products: Product[] = [
     {
       id: 1,
@@ -269,11 +272,11 @@ export default function DashboardPage() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       {user && (
-                      <p className="text-sm font-medium leading-none">
-                        {user.first_name + " " + user.last_name}
-                      </p>
-                    )}
-                    <p className="text-xs leading-none text-muted-foreground">kunal@example.com</p>
+                        <p className="text-sm font-medium leading-none">
+                          {user.first_name + " " + user.last_name}
+                        </p>
+                      )}
+                      <p className="text-xs leading-none text-muted-foreground">kunal@example.com</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -314,13 +317,12 @@ export default function DashboardPage() {
             {carouselImages.map((image, index) => (
               <div
                 key={image.id}
-                className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
-                  index === currentSlide
-                    ? "translate-x-0"
-                    : index < currentSlide
-                      ? "-translate-x-full"
-                      : "translate-x-full"
-                }`}
+                className={`absolute inset-0 transition-transform duration-500 ease-in-out ${index === currentSlide
+                  ? "translate-x-0"
+                  : index < currentSlide
+                    ? "-translate-x-full"
+                    : "translate-x-full"
+                  }`}
               >
                 <img src={image.src || "/placeholder.svg"} alt={image.alt} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
