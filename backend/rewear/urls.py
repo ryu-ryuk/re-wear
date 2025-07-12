@@ -29,16 +29,14 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
-
-    # DJOSER auth endpoints
-    path('auth/', include('djoser.urls')),          # user, register, me
-    path('auth/', include('djoser.urls.jwt')),      # login, refresh, logout
-    path('api/', include('djoser.urls')),
-    path('api/', include('djoser.urls.authtoken')),
-    # DJOSER auth endpoints (keeping for JWT refresh)
-    path('auth/', include('djoser.urls.jwt')),      # JWT refresh, verify, blacklist
-
-    # ReWear API endpoints
+    # DJOSER auth endpoints - DISABLED to avoid conflicts DJOOSOSOOSOORORO
+    # path('auth/', include('djoser.urls')),          # user, register, me
+    # path('auth/', include('djoser.urls.jwt')),      # login, refresh, logout
+    # path('api/', include('djoser.urls')),
+    # path('api/', include('djoser.urls.authtoken')),
+    # path('auth/', include('djoser.urls.jwt')),      # JWT refresh, verify, blacklist
+    ## 
+    # ReWear API endpoints - CUSTOM IMPLEMENTATION
     path('api/', include('users.urls')),           # User management, auth, dashboard
     path('api/items/', include('items.urls')),     # Item listings, search, management
     path('api/swaps/', include('swaps.urls')),     # Swap requests and negotiations
