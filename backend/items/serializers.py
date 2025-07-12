@@ -94,8 +94,8 @@ class ItemDetailSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return (obj.owner != request.user and 
-                   obj.status == 'available' and 
-                   obj.is_approved)
+                obj.status == 'available' and 
+                obj.is_approved)
         return False
 
 class ItemCreateUpdateSerializer(serializers.ModelSerializer):
