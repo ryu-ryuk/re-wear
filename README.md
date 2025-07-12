@@ -1,4 +1,9 @@
-# 👚 ReWear – Community Clothing Exchange
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ryu-ryuk/re-wear/main/backend/static/logo/logo.png" alt="ReWear Logo" width="300"/>
+</p>
+
+<h1 align="center">👚 ReWear – Community Clothing Exchange</h1>
+
 
 ## 🧩 Problem Statement
 
