@@ -311,7 +311,7 @@ export const itemsAPI = {
   },
 
   // Get all available items for browsing
-  async getAllItems(params?: {
+  async getAvailableItems(params?: {
     search?: string
     category?: string
     condition?: string
