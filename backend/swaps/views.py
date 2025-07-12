@@ -41,7 +41,34 @@ class SwapRequestViewSet(viewsets.ModelViewSet):
         - offered_item: ID of item user is offering
         - message: Optional message to item owner
         """
-        return super().create(request, *args, **kwargs)
+        # Create the swap using the create serializer
+        response = super().create(request, *args, **kwargs)
+        
+        # Get the created swap instance and return detailed data
+        if response.status_code == 201:
+            try:
+                # Get the swap ID from response data or find by unique combination
+                swap_id = response.data.get('id')
+                if not swap_id:
+                    # Fallback: find by unique combination
+                    created_swap = SwapRequest.objects.filter(
+                        requester=request.user,
+                        requested_item=request.data.get('requested_item'),
+                        offered_item=request.data.get('offered_item')
+                    ).latest('created_at')
+                    swap_id = created_swap.id
+                else:
+                    created_swap = SwapRequest.objects.get(id=swap_id)
+                
+                # Return detailed serializer data with ID
+                detailed_serializer = SwapRequestSerializer(created_swap, context={'request': request})
+                response.data = detailed_serializer.data
+                
+            except SwapRequest.DoesNotExist:
+                # If we can't find the swap, at least ensure we have an ID in response
+                pass
+        
+        return response
     
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
