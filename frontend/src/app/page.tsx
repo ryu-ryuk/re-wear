@@ -25,7 +25,7 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchFeaturedItems = async () => {
       try {
-        const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+        const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
         const response = await fetch(`${BASE_URL}/items/featured/`, {
           method: "GET",
           headers: {

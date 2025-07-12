@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 interface User {
   first_name: string
@@ -53,12 +54,33 @@ export default function DashboardPage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [user, setUser] = useState<User | null>()
+  const [user, setUser] = useState<User|null>()
+  const [products, setProducts] = useState()
   useEffect(() => {
     const storedUser = localStorage.getItem("ReWearUser")
     if (storedUser) {
       setUser(JSON.parse(storedUser)) // ✅ parse back into an object
     }
+    const fetchFeaturedItems = async () => {
+      try {
+        const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"
+        const response = await fetch(`${BASE_URL}/items/featured/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+
+        const body = await response.json()
+        setProducts(body.results)
+        console.log("Featured Items:", body.results)
+        // You can now set them in state if needed
+      } catch (error) {
+        console.error("Failed to fetch featured items:", error)
+      }
+    }
+    fetchFeaturedItems()
+    console.log(products)
   }, [])
 
   console.log(user)
@@ -92,80 +114,8 @@ export default function DashboardPage() {
     { "id": 9, "name": "Underwear", "icon": "🩲", "count": 2 },
     { "id": 10, "name": "Other", "icon": "📦", "count": 2 }
   ]
-  const products: Product[] = [
-    {
-      id: 1,
-      name: "Wireless Headphones",
-      price: 99.99,
-      image: "/placeholder.svg",
-      category: "Electronics",
-      rating: 4.5,
-      inStock: true,
-    },
-    {
-      id: 2,
-      name: "Cotton T-Shirt",
-      price: 29.99,
-      image: "/placeholder.svg",
-      category: "Fashion",
-      rating: 4.2,
-      inStock: true,
-    },
-    {
-      id: 3,
-      name: "Smart Watch",
-      price: 199.99,
-      image: "/placeholder.svg",
-      category: "Electronics",
-      rating: 4.7,
-      inStock: false,
-    },
-    {
-      id: 4,
-      name: "Running Shoes",
-      price: 79.99,
-      image: "/placeholder.svg",
-      category: "Sports",
-      rating: 4.4,
-      inStock: true,
-    },
-    {
-      id: 5,
-      name: "Coffee Maker",
-      price: 149.99,
-      image: "/placeholder.svg",
-      category: "Home & Garden",
-      rating: 4.6,
-      inStock: true,
-    },
-    {
-      id: 6,
-      name: "Skincare Set",
-      price: 59.99,
-      image: "/placeholder.svg",
-      category: "Beauty",
-      rating: 4.3,
-      inStock: true,
-    },
-    {
-      id: 7,
-      name: "Gaming Mouse",
-      price: 49.99,
-      image: "/placeholder.svg",
-      category: "Electronics",
-      rating: 4.8,
-      inStock: true,
-    },
-    {
-      id: 8,
-      name: "Yoga Mat",
-      price: 34.99,
-      image: "/placeholder.svg",
-      category: "Sports",
-      rating: 4.1,
-      inStock: true,
-    },
-  ]
+
+  const router = useRouter()
 
   // Mock search function
   const handleSearch = async (query: string) => {
@@ -263,8 +213,10 @@ export default function DashboardPage() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-                      <AvatarFallback>KS</AvatarFallback>
+                      <AvatarFallback>
+                        {user?.first_name?.[0]}
+                        {user?.last_name?.[0]}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -272,11 +224,11 @@ export default function DashboardPage() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       {user && (
-                        <p className="text-sm font-medium leading-none">
-                          {user.first_name + " " + user.last_name}
-                        </p>
-                      )}
-                      <p className="text-xs leading-none text-muted-foreground">kunal@example.com</p>
+                      <p className="text-sm font-medium leading-none">
+                        {user.first_name + " " + user.last_name}
+                      </p>
+                    )}
+                    <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -284,7 +236,10 @@ export default function DashboardPage() {
                   <DropdownMenuItem>Settings</DropdownMenuItem>
                   <DropdownMenuItem>Orders</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Log out</DropdownMenuItem>
+                  <DropdownMenuItem onClick={()=>{
+                    localStorage.removeItem("ReWearUser")
+                    localStorage.removeItem("ReWearToken")
+                  }}>Log out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -317,12 +272,13 @@ export default function DashboardPage() {
             {carouselImages.map((image, index) => (
               <div
                 key={image.id}
-                className={`absolute inset-0 transition-transform duration-500 ease-in-out ${index === currentSlide
-                  ? "translate-x-0"
-                  : index < currentSlide
-                    ? "-translate-x-full"
-                    : "translate-x-full"
-                  }`}
+                className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+                  index === currentSlide
+                    ? "translate-x-0"
+                    : index < currentSlide
+                      ? "-translate-x-full"
+                      : "translate-x-full"
+                }`}
               >
                 <img src={image.src || "/placeholder.svg"} alt={image.alt} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -384,7 +340,7 @@ export default function DashboardPage() {
             <Button variant="outline">View All</Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {products?.map((product) => (
               <Card key={product.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="p-0">
                   <img
@@ -394,23 +350,18 @@ export default function DashboardPage() {
                   />
                 </CardHeader>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">{product.name}</h3>
+                  <h3 className="font-semibold mb-2">{product.title}</h3>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-lg font-bold">${product.price}</span>
-                    <Badge variant={product.inStock ? "default" : "secondary"}>
-                      {product.inStock ? "In Stock" : "Out of Stock"}
-                    </Badge>
                   </div>
                   <div className="flex items-center space-x-1 mb-2">
-                    <span className="text-sm text-muted-foreground">★ {product.rating}</span>
                     <Badge variant="outline" className="text-xs">
                       {product.category}
                     </Badge>
                   </div>
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
-                  <Button className="w-full" disabled={!product.inStock}>
-                    {product.inStock ? "Add to Cart" : "Out of Stock"}
+                  <Button className="w-full" >
+                    Swap/Buy
                   </Button>
                 </CardFooter>
               </Card>
@@ -421,4 +372,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
 
