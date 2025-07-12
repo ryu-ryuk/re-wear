@@ -1,12 +1,10 @@
 from pathlib import Path
 import os
-import dotenv
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from datetime import timedelta
-from datetime import timedelta
-
-dotenv.load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -112,9 +110,9 @@ USE_TZ = True
 # static / media
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+# STATICFILES_DIRS = [
+#     BASE_DIR / "static",
+# ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -168,8 +166,8 @@ UNFOLD = {
         "dark": lambda request: static("logo/logo.png"),
     },
     "SITE_LOGO": {
-        "light": lambda request: static("logo/rewear_logo.png"),
-        "dark": lambda request: static("logo/rewear_logo.png"),
+        "light": lambda request: static("logo/logo.png"),
+        "dark": lambda request: static("logo/logo.png"),
     },
     "SITE_SYMBOL": "recycling",  # google material icon name
     "LOGIN": {
@@ -185,9 +183,24 @@ UNFOLD = {
             {
                 "title": _("Main"),
                 "items": [
-                    {"title": "Users", "icon": "person", "model": "users.User"},
-                    {"title": "Items", "icon": "inventory", "model": "items.Item"},
-                    {"title": "Swaps", "icon": "sync_alt", "model": "swaps.SwapRequest"},
+                    {
+                        "title": "Users",
+                        "icon": "person",
+                        "model": "users.User",
+                        "app": "users"
+                    },
+                    {
+                        "title": "Items",
+                        "icon": "inventory",
+                        "model": "items.Item",
+                        "app": "items"
+                    },
+                    {
+                        "title": "Swaps",
+                        "icon": "sync_alt",
+                        "model": "swaps.SwapRequest",
+                        "app": "swaps"
+                    },
                 ],
             },
         ],
