@@ -19,8 +19,7 @@
   
   ## ~ Demo Video ~
 
-  https://github.com/user-attachments/assets/ba6ee43f-bb2d-49a0-a565-c07e9bab9ea8
-</div>
+  https://github.com/user-attachments/assets/f52e7b41-483a-4553-9a24-7cd14b5d5e74
 
 ## Problem Statement
 
