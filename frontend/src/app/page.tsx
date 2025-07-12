@@ -6,17 +6,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Repeat, Search, Plus, Star, Users, Shield, Zap, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { getImageUrl } from "@/lib/utils"
 
 interface FeaturedItem {
   id: number
   title: string
   description: string
-  image: string
+  images?: Array<{ image: string }>
+  image?: string
   category: string
   condition: string
-  location: string
-  rating: number
-  swapValue: string
+  location?: string
+  rating?: number
+  swapValue?: string
+  point_value?: number
+  view_count?: number
+  like_count?: number
 }
 
 export default function LandingPage() {
@@ -33,16 +38,94 @@ export default function LandingPage() {
           },
         })
 
-        const body = await response.json()
-        setFeaturedItems(body.results)
-        console.log("Featured Items:", body)
-        // You can now set them in state if needed
+        if (response.ok) {
+          const body = await response.json()
+          setFeaturedItems(body.results)
+          console.log("Featured Items:", body)
+        } else {
+          // Fallback to demo data if API fails
+          setDemoFeaturedItems()
+        }
       } catch (error) {
         console.error("Failed to fetch featured items:", error)
+        // Fallback to demo data
+        setDemoFeaturedItems()
       }
     }
-    fetchFeaturedItems()
+    
+    const setDemoFeaturedItems = () => {
+      const demoItems: FeaturedItem[] = [
+        {
+          id: 1,
+          title: "Vintage Denim Jacket",
+          description: "Classic blue denim jacket in excellent condition. Perfect for casual outings.",
+          images: [{ image: "https://picsum.photos/400/300?random=1" }],
+          category: "Outerwear",
+          condition: "Excellent",
+          point_value: 150,
+          like_count: 24,
+          view_count: 89
+        },
+        {
+          id: 2,
+          title: "Designer Sneakers",
+          description: "Limited edition sneakers, barely worn. Great for collectors or fashion enthusiasts.",
+          images: [{ image: "https://picsum.photos/400/300?random=2" }],
+          category: "Footwear",
+          condition: "Like New",
+          point_value: 200,
+          like_count: 18,
+          view_count: 67
+        },
+        {
+          id: 3,
+          title: "Cozy Winter Sweater",
+          description: "Warm wool sweater perfect for cold weather. Soft and comfortable.",
+          images: [{ image: "https://picsum.photos/400/300?random=3" }],
+          category: "Tops",
+          condition: "Good",
+          point_value: 80,
+          like_count: 15,
+          view_count: 45
+        },
+        {
+          id: 4,
+          title: "Leather Handbag",
+          description: "Elegant leather handbag with multiple compartments. Timeless style.",
+          images: [{ image: "https://picsum.photos/400/300?random=4" }],
+          category: "Accessories",
+          condition: "Very Good",
+          point_value: 120,
+          like_count: 31,
+          view_count: 102
+        },
+        {
+          id: 5,
+          title: "Summer Floral Dress",
+          description: "Beautiful floral print dress, perfect for summer occasions.",
+          images: [{ image: "https://picsum.photos/400/300?random=5" }],
+          category: "Dresses",
+          condition: "Excellent",
+          point_value: 90,
+          like_count: 22,
+          view_count: 78
+        },
+        {
+          id: 6,
+          title: "Athletic Running Shoes",
+          description: "High-performance running shoes with minimal wear. Great for fitness enthusiasts.",
+          images: [{ image: "https://picsum.photos/400/300?random=6" }],
+          category: "Sports",
+          condition: "Good",
+          point_value: 110,
+          like_count: 19,
+          view_count: 56
+        }
+      ]
+      setFeaturedItems(demoItems)
+    }
 
+    fetchFeaturedItems()
   }, [])
 
 
@@ -80,6 +163,9 @@ export default function LandingPage() {
               <span className="text-2xl font-bold">SwapHub</span>
             </div>
             <nav className="hidden md:flex items-center space-x-6">
+              <Link href="/browse" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                Browse Items
+              </Link>
               <Button variant="outline" asChild>
                 <Link href="/login">Sign In</Link>
               </Button>
@@ -110,9 +196,9 @@ export default function LandingPage() {
                 </Link>
               </Button>
               <Button size="lg" variant="secondary" className="text-lg px-8 py-6" asChild>
-                <Link href="/list-item">
-                  <Plus className="mr-2 h-5 w-5" />
-                  List an Item
+                <Link href="/browse">
+                  <Search className="mr-2 h-5 w-5" />
+                  Browse Items
                 </Link>
               </Button>
             </div>
@@ -154,9 +240,13 @@ export default function LandingPage() {
                     <CardHeader className="p-0">
                       <div className="relative">
                         <img
-                          src={item.image || "/placeholder.svg"}
+                          src={getImageUrl(item.images?.[0]?.image || item.image)}
                           alt={item.title}
                           className="w-full h-48 object-cover rounded-t-lg"
+                          onError={(e) => {
+                            console.error(`Failed to load image: ${getImageUrl(item.images?.[0]?.image || item.image)}`)
+                            e.currentTarget.src = "/placeholder.svg"
+                          }}
                         />
                         <Badge className="absolute top-3 left-3 bg-background/90 text-foreground">
                           {item.category}
@@ -171,21 +261,25 @@ export default function LandingPage() {
                       <CardDescription className="mb-4 line-clamp-2">{item.description}</CardDescription>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Swap Value:</span>
-                          <span className="font-semibold text-primary">{item.swapValue}</span>
+                          <span className="text-muted-foreground">Points:</span>
+                          <span className="font-semibold text-primary">{item.point_value || item.swapValue || 'N/A'}</span>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Location:</span>
-                          <span>{item.location}</span>
-                        </div>
+                        {item.location && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Location:</span>
+                            <span>{item.location}</span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-1">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span>{item.rating}</span>
+                            <span>{item.rating || (item.like_count ? `${item.like_count} likes` : '0')}</span>
                           </div>
-                          <Button size="sm" variant="outline">
-                            View Details
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/app/item/${item.id}`}>
+                              View Details
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
                           </Button>
                         </div>
                       </div>
@@ -218,9 +312,8 @@ export default function LandingPage() {
               {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, index) => (
                 <button
                   key={index}
-                  className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentSlide ? "bg-primary" : "bg-muted-foreground/30"
-                  }`}
+                  className={`w-3 h-3 rounded-full transition-colors ${index === currentSlide ? "bg-primary" : "bg-muted-foreground/30"
+                    }`}
                   onClick={() => setCurrentSlide(index)}
                 />
               ))}
@@ -318,7 +411,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="text-lg px-8 py-6" asChild>
-                <Link href="/signup">
+                <Link href="/app">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>

@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Heart, Eye, Filter, Loader2, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { itemsAPI, type Item } from "@/lib/api"
+import { getImageUrl } from "@/lib/utils"
 import Link from "next/link"
 import {
   Select,
@@ -64,7 +65,10 @@ export default function BrowsePage() {
     try {
       setLoading(true)
       
-      const params: any = { page }
+      const params: any = { 
+        page,
+        page_size: 20  // Set page size for better browsing
+      }
       
       // Add filters to params
       if (filters.search) params.search = filters.search
@@ -77,10 +81,10 @@ export default function BrowsePage() {
       
       setItems(response.results)
       setPagination({
-        count: response.count,
-        next: response.next,
-        previous: response.previous,
-        currentPage: page
+        count: response.pagination.count,
+        next: response.pagination.next,
+        previous: response.pagination.previous,
+        currentPage: response.pagination.current_page || page
       })
       
     } catch (error) {
@@ -125,24 +129,8 @@ export default function BrowsePage() {
   }
 
   const handleViewItem = (itemId: number) => {
-    window.location.href = `/items/${itemId}`
-  }
-
-  const getImageUrl = (imageUrl: string) => {
-    if (!imageUrl) return "/placeholder.svg"
-    
-    // If it's already a full URL, return as is
-    if (imageUrl.startsWith('http')) return imageUrl
-    
-    // If it starts with /media/, prepend the API base URL
-    if (imageUrl.startsWith('/media/')) {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
-      return `${API_BASE_URL.replace('/api', '')}${imageUrl}`
-    }
-    
-    // Otherwise, assume it needs the full media path
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
-    return `${API_BASE_URL.replace('/api', '')}/media/${imageUrl}`
+    // Navigate to item detail page
+    window.location.href = `/app/item/${itemId}`
   }
 
   return (
@@ -280,7 +268,7 @@ export default function BrowsePage() {
                       className="w-full h-48 object-cover"
                       onError={(e) => {
                         console.error(`Failed to load image: ${getImageUrl(item.images?.[0]?.image || "")}`)
-                        e.currentTarget.src = "/placeholder.svg"
+                        e.currentTarget.src = "https://via.placeholder.com/400x300?text=No+Image"
                       }}
                     />
                     <div className="absolute top-2 left-2">
