@@ -94,3 +94,21 @@ The platform provides a seamless user experience with features like item listing
 | GET    | `/api/categories/` | List all item categories/types |
 | GET    | `/api/tags/`       | List popular tags              |
 | GET    | `/api/users/<id>/` | Get public uploader info       |
+
+
+## Project Structure
+
+```
+backend/
+├── admin_panel/            # custom admin configs
+├── items/                  # item upload, listing, redemption
+├── swaps/                  # swap request/response logic
+├── users/                  # user model, auth, profiles
+├── rewear/                 # django project structure
+├── manage.py               # entry point for DJANOGOGOOG
+├── Dockerfile              # backend image config
+├── docker-compose.yml      # backend and db ahh
+├── Makefile                # make run
+├── requirements.txt        # requirements
+└── .env                    # env
+```
