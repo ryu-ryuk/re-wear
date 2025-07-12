@@ -436,19 +436,9 @@ def register_user(request):
         "message": "Account created successfully! Welcome to ReWear! You received 100 bonus points!"
     }
     
-    ERROR RESPONSES (400):
-    Field-specific errors:
+    ERROR RESPONSE (400):
     {
-        "username": ["A user with this username already exists."],
-        "email": ["A user with this email already exists."],
-        "password": ["This password is too short. It must contain at least 8 characters."]
-    }
-    
-    Missing required fields:
-    {
-        "username": ["This field is required."],
-        "email": ["This field is required."],
-        "password": ["This field is required."]
+        "message": "Invalid request. Please check your information and try again."
     }
     """
     serializer = UserRegistrationSerializer(data=request.data)
@@ -468,8 +458,10 @@ def register_user(request):
             'message': 'Account created successfully! Welcome to ReWear! You received 100 bonus points!'
         }, status=status.HTTP_201_CREATED)
     
-    # Return field-specific errors
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # Return simple error message instead of field-specific errors
+    return Response({
+        'message': 'Invalid request. Please check your information and try again.'
+    }, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -490,14 +482,8 @@ def login_user(request):
     }
     
     ERROR RESPONSES (400/401):
-    Missing fields:
     {
-        "error": "Username and password are required"
-    }
-    
-    Invalid credentials:
-    {
-        "error": "Invalid credentials"
+        "message": "Invalid credentials. Please check your username and password."
     }
     """
     username = request.data.get('username')
@@ -505,7 +491,7 @@ def login_user(request):
     
     if not username or not password:
         return Response(
-            {'error': 'Username and password are required'}, 
+            {'message': 'Please provide both username and password.'}, 
             status=status.HTTP_400_BAD_REQUEST
         )
     
@@ -532,7 +518,7 @@ def login_user(request):
         })
     else:
         return Response(
-            {'error': 'Invalid credentials'}, 
+            {'message': 'Invalid credentials. Please check your username and password.'}, 
             status=status.HTTP_401_UNAUTHORIZED
         )
 
