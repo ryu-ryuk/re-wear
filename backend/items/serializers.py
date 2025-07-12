@@ -213,3 +213,8 @@ class ItemReportSerializer(serializers.ModelSerializer):
             'resolved',
             'reviewed_by',
         ]
+
+class ItemReportCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemReport
+        fields = ['item', 'reason']
