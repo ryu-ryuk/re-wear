@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from items.models import Item
 from swaps.models import SwapRequest
 
@@ -103,3 +104,50 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         if value and len(value) < 2:
             raise serializers.ValidationError("Location must be at least 2 characters long")
         return value
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+    Registration serializer without confirm_password - Frontend handles validation
+    
+    Error Response Format:
+    {
+        "username": ["A user with this username already exists."],
+        "email": ["A user with this email already exists."],
+        "password": ["This password is too short. It must contain at least 8 characters."]
+    }
+    
+    Or for non-field errors:
+    {
+        "non_field_errors": ["Some general error message"]
+    }
+    """
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password', 'first_name', 'last_name', 'location')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True}
+        }
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with this username already exists.")
+        return value
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User.objects.create_user(**validated_data)
+        user.set_password(password)
+        
+        # Give welcome bonus points
+        user.points = 100
+        user.save()
+        
+        return user
