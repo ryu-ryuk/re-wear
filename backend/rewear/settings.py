@@ -4,6 +4,8 @@ import dotenv
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from datetime import timedelta
+from datetime import timedelta
+
 dotenv.load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -130,12 +132,14 @@ REST_FRAMEWORK = {
 }
 
 # jwt authentication
+# simple jwt settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
 
 # djoser settings
 DJOSER = {
@@ -151,6 +155,8 @@ DJOSER = {
         'user_list': ['rest_framework.permissions.IsAdminUser'],
     },
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 UNFOLD = {
