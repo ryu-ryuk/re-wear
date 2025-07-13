@@ -96,11 +96,12 @@ graph TB
 ### Using Docker (Recommended)
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/ryu-ryuk/re-wear.git
 cd re-wear
 
 # Start the backend services
 cd backend
+make build
 make up
 
 # Start the frontend
